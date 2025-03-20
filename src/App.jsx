@@ -1,9 +1,11 @@
 import React from 'react';
+import Dashboard from './pages/Dashboard';
 
 const App = () => {
   return (
-    <div className="App font-semibold text-2xl text-center">
-      <h1>React App</h1>
+    <div className="App w-full h-full min-h-screen bg-background
+      ">
+      <Dashboard />
     </div>
   );
 }
