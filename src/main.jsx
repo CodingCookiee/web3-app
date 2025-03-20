@@ -1,8 +1,10 @@
 import { StrictMode } from "react";
 import { Web3ReactProvider } from "@web3-react/core";
 import { Web3Provider } from "@ethersproject/providers";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer} from "react-toastify";
+import { LoadingProvider } from "./context/loadingContext";
 import { createRoot } from "react-dom/client";
+
 import "./index.css";
 import App from "./App.jsx";
 
@@ -16,6 +18,7 @@ const connectors = [
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+    <LoadingProvider>
     <Web3ReactProvider connectors={connectors} >
     <App />
     <ToastContainer
@@ -32,5 +35,6 @@ createRoot(document.getElementById("root")).render(
       
     />
     </Web3ReactProvider>
+    </LoadingProvider>
   </StrictMode>
 );

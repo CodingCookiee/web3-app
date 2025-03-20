@@ -1,7 +1,7 @@
-// src/components/ConnectButton.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useWeb3React } from '@web3-react/core';
-import { metaMask } from '../../connectors/metamask';
+import { metaMask } from '../../connectors/metaMask';
 import { walletConnectV2 } from '../../connectors/walletConnectV2';
 import { toast } from 'react-toastify';
 import { Button } from '../ui/button';
