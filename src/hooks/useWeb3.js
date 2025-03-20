@@ -1,18 +1,24 @@
-import { useWeb3React } from '@web3-react/core';
-import { useMemo } from 'react';
-import Web3 from 'web3';
-
+import Web3 from "web3";
+import { useWeb3React } from "@web3-react/core";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { getWeb3NoAccount } from "../lib/web3";
 // create and returns a new instance of Web3
 
 export const useWeb3 = () => {
-    const { provider } = useWeb3React();
-
-    return useMemo(() => {
-        if (!provider) return new Web3('http://localhost:8545'); // Replace with your local Ethereum node URL
-
-        return new Web3(provider);
-
-        }, [provider]);
+  const { provider, connector } = useWeb3React();
+  const refETH = useRef();
+  const [web3, setWeb3] = useState(
+    provider ? new Web3(provider) : getWeb3NoAccount()
+  );
+  useEffect(() => {
+    if (provider !== refETH.current) {
+      setWeb3(provider ? new Web3(provider) : getWeb3NoAccount());
+      refETH.current = provider;
+    }
+  }, [provider, connector, web3]);
+  return useMemo(() => {
+    return web3;
+  }, [web3]);
 };
 
 

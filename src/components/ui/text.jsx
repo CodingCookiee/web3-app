@@ -29,7 +29,7 @@ const Text = ({
     secondary: 'text-gray-600 dark:text-gray-300',
     success: 'text-green-600 dark:text-green-400',
     warning: 'text-yellow-600 dark:text-yellow-400',
-    error: 'text-red-600 dark:text-red-400',
+    error: 'text-red-400 dark:text-red-400',
     muted: 'text-gray-500 dark:text-gray-500',
   };
 

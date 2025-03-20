@@ -9,7 +9,7 @@ export const nodes =[
 
 const getNodeUrl = () => {
     const randomIndex = random(nodes.length);
-    return nodes[randomIndex].default;
+    return nodes[randomIndex];
 }
 
 export default getNodeUrl;

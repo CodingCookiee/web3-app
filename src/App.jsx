@@ -3,7 +3,6 @@ import Dashboard from "./pages/Dashboard";
 import { createBrowserRouter as Router, RouterProvider, Outlet } from "react-router-dom";
 
 
-
 const App = () => {
   const router = Router([
     {

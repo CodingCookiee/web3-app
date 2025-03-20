@@ -13,7 +13,7 @@ export const connectorsByName = {
 };
 
 
-export const getLibraryforSign = (provider) => {
+export const getLibraryForSign = (provider) => {
     const library = new Web3Provider(provider);
 
     return library;
