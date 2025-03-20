@@ -32,8 +32,8 @@ function Header() {
           </div>
 
           <div className="header-bottom flex flex-col items-center gap-5">
-            {isActive && <WalletInfo />}
             <ConnectButton />
+            {isActive && <WalletInfo />}
           </div>
         </>
       )}

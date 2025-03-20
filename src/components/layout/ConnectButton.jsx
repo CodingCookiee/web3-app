@@ -1,4 +1,3 @@
-// src/components/ConnectButton.jsx
 import React, { useState, useEffect } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { metaMask } from '../../connectors/metamask';
@@ -6,9 +5,11 @@ import { walletConnectV2 } from '../../connectors/walletConnectV2';
 import { toast } from 'react-toastify';
 import { Button } from '../ui/button';
 import Text from '../ui/text';
+import useAuth from '../../hooks/useAuth';
 
 function ConnectButton() {
   const { isActive, account, connector } = useWeb3React();
+  const { login, logout } = useAuth();
   const [isLoading, setIsLoading] = useState({
     metamask: false,
     walletconnect: false
@@ -27,7 +28,7 @@ function ConnectButton() {
   const connectMetaMask = async () => {
     if (isActive && connector === metaMask) {
       try {
-        await connector.deactivate();
+        logout();
         toast.info('Wallet disconnected');
         return;
       } catch (error) {
@@ -40,8 +41,7 @@ function ConnectButton() {
     setIsLoading({ ...isLoading, metamask: true });
     
     try {
-      // Activate MetaMask
-      await metaMask.activate();
+      await login('injected');
       toast.success('MetaMask connected successfully!');
     } catch (error) {
       console.error('MetaMask connection error:', error);
@@ -54,7 +54,7 @@ function ConnectButton() {
   const connectWalletConnect = async () => {
     if (isActive && connector === walletConnectV2) {
       try {
-        await connector.deactivate();
+        logout();
         toast.info('Wallet disconnected');
         return;
       } catch (error) {
@@ -67,8 +67,8 @@ function ConnectButton() {
     setIsLoading({ ...isLoading, walletconnect: true });
     
     try {
-      // Activate WalletConnect
-      await walletConnectV2.activate();
+      // Use the login function from useAuth
+      await login('walletconnect');
       toast.success('WalletConnect connected successfully!');
     } catch (error) {
       console.error('WalletConnect error:', error);

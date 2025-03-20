@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { useWeb3React } from '@web3-react/core';
-import { useLibrary } from './useLibrary';
+import  useLibrary  from './useLibrary';
 import { toast } from 'react-toastify';
 
 export const useSignature = () => {
