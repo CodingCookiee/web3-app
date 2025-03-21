@@ -15,12 +15,7 @@ function ConnectButton() {
   const [isMetaMaskConnected, setIsMetaMaskConnected] = useState(false);
   const [isWalletConnectConnected, setIsWalletConnectConnected] = useState(false);
 
-  // Show errors from useAuth
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
+  
 
   // Check the actual connection state
   useEffect(() => {
