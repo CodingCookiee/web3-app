@@ -17,8 +17,10 @@ const useAuth = () => {
             throw new Error('MetaMask is not installed');
           }
           
-          // Always use activate() to ensure the popup shows
+          // First activate MetaMask - this will trigger the popup
           await metaMask.activate();
+          
+          // Only set localStorage after successful activation
           window.localStorage.setItem('connectorId', connectorID);
         } else if (connectorID === 'walletconnect') {
           await walletConnectV2.activate();
@@ -30,6 +32,8 @@ const useAuth = () => {
       } catch (err) {
         console.error('Login error:', err);
         setError(err.message);
+        // Remove connectorId if login fails
+        window.localStorage.removeItem('connectorId');
         throw err;
       }
     },
@@ -45,10 +49,14 @@ const useAuth = () => {
           await connector.resetState();
         }
       }
+      
+      // Always clear storage regardless of success or failure
       window.localStorage.removeItem('connectorId');
     } catch (err) {
       console.error('Logout error:', err);
       setError(err.message);
+      // Ensure localStorage is cleared even if there's an error
+      window.localStorage.removeItem('connectorId');
     }
   }, [connector]);
 

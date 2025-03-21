@@ -17,11 +17,11 @@ function Header() {
         <Loading />
       </div>
       ) : (
-        <>
+        <div  className='w-full h-full flex flex-col items-center justify-center gap-20'>
           <div
             className="header-top flex flex-col items-center
-              justify-center gap-5 bg-neutral-200 border
-              border-neutral-300 rounded-lg px-10 py-10"
+              justify-center gap-5 bg-gray-200 border
+              border-neutral-400 shadow-md rounded-lg px-10 py-10"
           >
             <Text variant="h1" color="default" weight="bold">
               Welcome to Web3 Wallet
@@ -31,11 +31,16 @@ function Header() {
             </Text>
           </div>
 
-          <div className="header-bottom flex flex-col items-center gap-5">
+          <div className="header-bottom w-full h-full flex 
+          flex-col items-center justify-center gap-5 flex-wrap">
+            <div className="">
             <ConnectButton />
+            </div>
+            <div className="w-full h-full">
             {isActive && <WalletInfo />}
+            </div>
           </div>
-        </>
+        </div>
       )}
     </header>
   );

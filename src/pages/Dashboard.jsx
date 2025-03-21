@@ -4,8 +4,8 @@ import WalletInfo from '../components/layout/WalletInfo';
 
 const Dashboard = () => {
     return (
-        <div className='w-full h-full min-h-screen flex flex-col 
-        items-center justify-center gap-10'>
+        <div className='w-full h-full min-h-screen  
+        flex flex-col items-center justify-center gap-10 px-5 py-5'>
             <Header />
             
         </div>
