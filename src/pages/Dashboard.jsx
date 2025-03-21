@@ -7,9 +7,10 @@ const Dashboard = () => {
         <div className='w-full h-full min-h-screen flex flex-col 
         items-center justify-center gap-10'>
             <Header />
-            <WalletInfo />
+            
         </div>
     );
 }
 
 export default Dashboard;
+

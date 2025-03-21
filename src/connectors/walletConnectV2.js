@@ -1,19 +1,21 @@
-import { initializeConnector } from '@web3-react/core'
-import { WalletConnect as WalletConnectV2 } from '@web3-react/walletconnect-v2'
 
-const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID
+import { initializeConnector } from '@web3-react/core';
+import { WalletConnect } from '@web3-react/walletconnect-v2';
 
-export const [walletConnectV2, hooks] = initializeConnector(
-    (actions) => new WalletConnectV2({
-        actions,
-        options: {
-            projectId,
-            chains: [137],
-            optionalChainId: [1],
-            showQrModal: true
-        },
-        onError: (error) => {
-            console.error('Error in WalletConnect', error)
-            throw error
-        }
-    })); 
+// These are example values - replace with your own project ID
+const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
+const chains = [1, 56, 137]; // Example chains: Ethereum, BSC, Polygon
+const optionalChains = [42161, 10]; // Example optional chains: Arbitrum, Optimism
+
+export const [walletConnectV2, walletConnectV2Hooks] = initializeConnector(
+  (actions) => 
+    new WalletConnect({
+      actions,
+      options: {
+        projectId,
+        chains,
+        optionalChains,
+        showQrModal: true,
+      },
+    })
+);

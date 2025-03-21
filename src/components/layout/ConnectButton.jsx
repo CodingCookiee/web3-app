@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { metaMask } from '../../connectors/metamask';
@@ -8,7 +9,7 @@ import Text from '../ui/text';
 import useAuth from '../../hooks/useAuth';
 
 function ConnectButton() {
-  const { isActive, account, connector } = useWeb3React();
+  const { connector, isActive, account } = useWeb3React();
   const { login, logout } = useAuth();
   const [isLoading, setIsLoading] = useState({
     metamask: false,
@@ -25,15 +26,18 @@ function ConnectButton() {
     }
   }, [isActive]);
 
+  const isMetaMaskConnected = isActive && connector === metaMask;
+  const isWalletConnectConnected = isActive && connector === walletConnectV2;
+
   const connectMetaMask = async () => {
-    if (isActive && connector === metaMask) {
+    if (isMetaMaskConnected) {
       try {
-        logout();
-        toast.info('Wallet disconnected');
+        await logout();
+        toast.info('MetaMask disconnected');
         return;
       } catch (error) {
-        console.error('Error disconnecting wallet:', error);
-        toast.error('Failed to disconnect wallet');
+        console.error('Error disconnecting MetaMask:', error);
+        toast.error('Failed to disconnect MetaMask');
         return;
       }
     }
@@ -45,21 +49,21 @@ function ConnectButton() {
       toast.success('MetaMask connected successfully!');
     } catch (error) {
       console.error('MetaMask connection error:', error);
-      toast.error('Failed to connect to MetaMask');
+      toast.error('Failed to connect to MetaMask: ' + (error.message || 'Unknown error'));
     } finally {
       setIsLoading({ ...isLoading, metamask: false });
     }
   };
 
   const connectWalletConnect = async () => {
-    if (isActive && connector === walletConnectV2) {
+    if (isWalletConnectConnected) {
       try {
-        logout();
-        toast.info('Wallet disconnected');
+        await logout();
+        toast.info('WalletConnect disconnected');
         return;
       } catch (error) {
-        console.error('Error disconnecting wallet:', error);
-        toast.error('Failed to disconnect wallet');
+        console.error('Error disconnecting WalletConnect:', error);
+        toast.error('Failed to disconnect WalletConnect');
         return;
       }
     }
@@ -67,12 +71,11 @@ function ConnectButton() {
     setIsLoading({ ...isLoading, walletconnect: true });
     
     try {
-      // Use the login function from useAuth
       await login('walletconnect');
       toast.success('WalletConnect connected successfully!');
     } catch (error) {
       console.error('WalletConnect error:', error);
-      toast.error('Failed to connect with WalletConnect');
+      toast.error('Failed to connect with WalletConnect: ' + (error.message || 'Unknown error'));
     } finally {
       setIsLoading({ ...isLoading, walletconnect: false });
     }
@@ -84,16 +87,16 @@ function ConnectButton() {
     const formattedAddress = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
     
     return (
-      <div className="flex items-center justify-center mt-2">
-        <Text variant="small" color="secondary">
-          Connected: {formattedAddress}
+      <div className="cursor-pointer hover:underline flex items-center justify-center mt-2">
+        <Text variant="h5 " color="secondary">
+          Connected Account: {formattedAddress}
         </Text>
       </div>
     );
   };
 
   return (
-    <div className="connect-wallet-container flex flex-col gap-4">
+    <div className="connect-wallet-container w-full  flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-4">
         <Button
           variant="outline"
@@ -103,7 +106,7 @@ function ConnectButton() {
         >
           {isLoading.metamask
             ? 'Connecting...'
-            : isActive && connector === metaMask
+            : isMetaMaskConnected
               ? 'Disconnect MetaMask'
               : 'Connect MetaMask'}
         </Button>
@@ -116,7 +119,7 @@ function ConnectButton() {
         >
           {isLoading.walletconnect
             ? 'Connecting...'
-            : isActive && connector === walletConnectV2
+            : isWalletConnectConnected
               ? 'Disconnect WalletConnect'
               : 'Connect WalletConnect'}
         </Button>

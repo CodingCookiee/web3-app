@@ -77,7 +77,7 @@ function WalletInfo() {
   }
 
   return (
-    <div className="wallet-info-container p-4 bg-white rounded-lg shadow-md">
+    <div className="wallet-info-container w-full h-full p-4 bg-white rounded-lg shadow-md">
       <div className="grid gap-3">
         <div className="wallet-info-item">
           <Text variant="small" color="secondary">Account:</Text>
@@ -86,7 +86,7 @@ function WalletInfo() {
           </Text>
         </div>
         
-        <div className="wallet-info-item">
+        <div className="wallet-info-item w-full ">
           <Text variant="small" color="secondary">Network:</Text>
           <Text variant="body">{network}</Text>
         </div>
@@ -99,7 +99,7 @@ function WalletInfo() {
         <div className="mt-4">
           <Button 
             variant="outline" 
-            className="w-full bg-indigo-500 text-white hover:bg-indigo-600"
+            className="w-full bg-indigo-500 text-white hover:text-amber-50 hover:bg-indigo-600"
             onClick={handleSignMessage}
           >
             Sign Message
@@ -107,7 +107,7 @@ function WalletInfo() {
         </div>
         
         {signatureResult && (
-          <div className="mt-4 p-3 bg-gray-100 rounded-md">
+          <div className="mt-4 w-full p-3 bg-gray-100 rounded-md">
             <Text variant="small" color="secondary">Signature Result:</Text>
             {signatureResult.success ? (
               <>
@@ -119,7 +119,7 @@ function WalletInfo() {
                 </Text>
               </>
             ) : (
-              <Text variant="small" color="danger" className="mt-1">
+              <Text variant="small" color='error'  className="mt-1">
                 Error: {signatureResult.error}
               </Text>
             )}

@@ -1,37 +1,56 @@
 import { useState, useCallback } from 'react';
 import { useWeb3React } from '@web3-react/core';
-import { connectorsByName } from '../lib/web3React';
+import { metaMask } from '../connectors/metaMask';
+import { walletConnectV2 } from '../connectors/walletConnectV2';
 
 const useAuth = () => {
-  const { activate, deactivate } = useWeb3React();
+  const { connector } = useWeb3React();
   const [error, setError] = useState(null);
 
   const login = useCallback(
     async (connectorID) => {
-      const connector = connectorsByName[connectorID];
-      if (!connector) {
-        setError('Invalid connector');
-        return;
-      }
-
+      setError(null);
       try {
-        setError(null);
-        await activate(connector, null, true);
-        // Store the connector ID for eager connect
-        window.localStorage.setItem('connectorId', connectorID);
+        if (connectorID === 'injected') {
+          // Check if MetaMask is installed
+          if (typeof window.ethereum === 'undefined') {
+            throw new Error('MetaMask is not installed');
+          }
+          
+          // Always use activate() to ensure the popup shows
+          await metaMask.activate();
+          window.localStorage.setItem('connectorId', connectorID);
+        } else if (connectorID === 'walletconnect') {
+          await walletConnectV2.activate();
+          window.localStorage.setItem('connectorId', connectorID);
+        } else {
+          setError('Invalid connector');
+          throw new Error('Invalid connector');
+        }
       } catch (err) {
+        console.error('Login error:', err);
         setError(err.message);
         throw err;
       }
     },
-    [activate]
+    []
   );
 
-  const logout = useCallback(() => {
-    deactivate();
-    // Remove the connector ID from local storage
-    window.localStorage.removeItem('connectorId');
-  }, [deactivate]);
+  const logout = useCallback(async () => {
+    try {
+      if (connector) {
+        if (connector?.deactivate) {
+          await connector.deactivate();
+        } else {
+          await connector.resetState();
+        }
+      }
+      window.localStorage.removeItem('connectorId');
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError(err.message);
+    }
+  }, [connector]);
 
   return { login, logout, error };
 };

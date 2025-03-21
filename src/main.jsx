@@ -8,12 +8,12 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
-import { metaMask, hooks as MetaMaskHooks } from "./connectors/metaMask.js";
-import { walletConnectV2, hooks as WalletConnectV2Hooks } from "./connectors/walletConnectV2.js";
+import { metaMask, metaMaskHooks } from "./connectors/metaMask.js";
+import { walletConnectV2, walletConnectV2Hooks } from "./connectors/walletConnectV2.js";
 
 const connectors = [
-  [metaMask, MetaMaskHooks],
-  [walletConnectV2, WalletConnectV2Hooks],
+  [metaMask, metaMaskHooks],
+  [walletConnectV2, walletConnectV2Hooks],
 ]
 
 createRoot(document.getElementById("root")).render(
