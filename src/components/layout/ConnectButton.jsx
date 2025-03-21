@@ -12,6 +12,8 @@ function ConnectButton() {
     metamask: false,
     walletconnect: false,
   });
+  const [isMetaMaskConnected, setIsMetaMaskConnected] = useState(false);
+  const [isWalletConnectConnected, setIsWalletConnectConnected] = useState(false);
 
   // Show errors from useAuth
   useEffect(() => {
@@ -19,6 +21,39 @@ function ConnectButton() {
       toast.error(error);
     }
   }, [error]);
+
+  // Check the actual connection state
+  useEffect(() => {
+    const checkMetaMaskConnection = async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          const isConnected = accounts && accounts.length > 0;
+          setIsMetaMaskConnected(isConnected && localStorage.getItem("connectorId") === "injected");
+        } catch (error) {
+          console.error("Error checking MetaMask connection:", error);
+          setIsMetaMaskConnected(false);
+        }
+      } else {
+        setIsMetaMaskConnected(false);
+      }
+    };
+    
+    const checkWalletConnectConnection = () => {
+      setIsWalletConnectConnected(active && localStorage.getItem("connectorId") === "walletconnect");
+    };
+    
+    checkMetaMaskConnection();
+    checkWalletConnectConnection();
+    
+    // Set up interval to periodically check connection status
+    const intervalId = setInterval(() => {
+      checkMetaMaskConnection();
+      checkWalletConnectConnection();
+    }, 2000);
+    
+    return () => clearInterval(intervalId);
+  }, [active, account]);
 
   // Attempt to reconnect on initial load
   useEffect(() => {
@@ -37,13 +72,41 @@ function ConnectButton() {
     }
   }, [login, active]);
 
+  // Listen for MetaMask account changes
+  useEffect(() => {
+    if (window.ethereum) {
+      const handleAccountsChanged = async (accounts) => {
+        if (accounts.length === 0) {
+          // User disconnected their wallet
+          console.log("MetaMask disconnected");
+          localStorage.removeItem("connectorId");
+          setIsMetaMaskConnected(false);
+        } else if (localStorage.getItem("connectorId") === "injected") {
+          setIsMetaMaskConnected(true);
+        }
+      };
+      
+      const handleChainChanged = () => {
+        // Force page refresh on chain change
+        window.location.reload();
+      };
+      
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+      
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      };
+    }
+  }, []);
+
   const connectMetaMask = async () => {
-    const isMetaMaskConnected = active && localStorage.getItem("connectorId") === "injected";
-    
     if (isMetaMaskConnected) {
       try {
         setIsLoading((prev) => ({...prev, metamask: true}));
         await logout();
+        setIsMetaMaskConnected(false);
         toast.info("Disconnected from MetaMask");
       } catch (error) {
         console.error("Error disconnecting MetaMask:", error);
@@ -62,15 +125,11 @@ function ConnectButton() {
         throw new Error('MetaMask is not installed');
       }
       
-      
+      // Request accounts explicitly before activating
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
       await login("injected");
-      
-      // Verify that we're actually connected before showing success
-      if (window.ethereum.selectedAddress) {
-        toast.success("Connected to MetaMask successfully");
-      } else {
-        throw new Error("MetaMask connection was rejected");
-      }
+      setIsMetaMaskConnected(true);
+      toast.success("Connected to MetaMask successfully");
     } catch (error) {
       console.error("MetaMask connection error:", error);
       toast.error("Failed to connect to MetaMask: " + (error.message || "Unknown error"));
@@ -80,12 +139,11 @@ function ConnectButton() {
   };
   
   const connectWalletConnect = async () => {
-    const isWalletConnectConnected = active && localStorage.getItem("connectorId") === "walletconnect";
-    
     if (isWalletConnectConnected) {
       try {
         setIsLoading((prev) => ({...prev, walletconnect: true}));
         await logout();
+        setIsWalletConnectConnected(false);
         toast.info("Disconnected from WalletConnect");
       } catch (error) {
         console.error("Error disconnecting WalletConnect:", error);
@@ -100,6 +158,7 @@ function ConnectButton() {
     
     try {
       await login("walletconnect");
+      setIsWalletConnectConnected(true);
       toast.success("Connected to WalletConnect successfully");
     } catch (error) {
       console.error("WalletConnect error:", error);
@@ -113,13 +172,12 @@ function ConnectButton() {
     ? `${account.substring(0, 6)}...${account.substring(account.length - 4)}`
     : '';
 
-  const isMetaMaskConnected = active && localStorage.getItem("connectorId") === "injected";
-  const isWalletConnectConnected = active && localStorage.getItem("connectorId") === "walletconnect";
-
   const renderAddress = () => {
+    if (!formattedAddress) return null;
+    
     return (
       <div className="flex items-center justify-center mt-2">
-        <Text variant="small" color="primary">
+        <Text variant="small" color="secondary">
           Connected: {formattedAddress}
         </Text>
       </div>
@@ -127,18 +185,16 @@ function ConnectButton() {
   };
 
   return (
-    <div className="connect-wallet-container w-full h-full">
-      <div className="w-full flex flex-col sm:flex-row gap-5">
-        <div className="meta-btn w-full ">
-
+    <div className="connect-wallet-container w-full flex flex-col gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <Button
           variant={isMetaMaskConnected ? "destructive" : "outline"}
-          className="py-5 w-full max-w-2xs"
+          className="py-5"
           onClick={connectMetaMask}
           disabled={
             isLoading.metamask || (isLoading.walletconnect && !isWalletConnectConnected)
           }
-          >
+        >
           {isLoading.metamask
             ? "Connecting..."
             : isMetaMaskConnected
@@ -146,11 +202,9 @@ function ConnectButton() {
             : "Connect MetaMask"}
         </Button>
 
-        </div>
-        <div className="walletconnect-btn w-full ">
         <Button
           variant={isWalletConnectConnected ? "destructive" : "outline"}
-          className="py-5 w-full max-w-2xs"
+          className="py-5"
           onClick={connectWalletConnect}
           disabled={
             isLoading.walletconnect || (isLoading.metamask && !isMetaMaskConnected)
@@ -162,12 +216,9 @@ function ConnectButton() {
             ? "Disconnect WalletConnect"
             : "Connect WalletConnect"}
         </Button>
-        </div>
       </div>
 
-      <div className="h-full w-full">
-      {active && renderAddress()}
-      </div>
+      {(isMetaMaskConnected || isWalletConnectConnected) && renderAddress()}
     </div>
   );
 }

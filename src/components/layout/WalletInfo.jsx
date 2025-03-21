@@ -6,6 +6,7 @@ import { useSignature } from '../../hooks/useSignature';
 import { Button } from '../ui/button';
 import Text from '../ui/text';
 import { toast  } from 'react-toastify';
+import { ethers } from 'ethers'; 
 
 function WalletInfo() {
   const { account, chainId, isActive } = useWeb3React();
@@ -59,28 +60,66 @@ useEffect(() => {
 
 
 const handleSignMessage = async () => {
-  if (!userSign || !account) {
-    console.log("Wallet not connected or signing function unavailable");
+  if (!account) {
+    toast.error("Wallet not connected");
     return;
+  }
+  
+  // Check if MetaMask is connected but not properly initialized
+  if (window.ethereum && window.ethereum.selectedAddress && 
+      window.ethereum.selectedAddress.toLowerCase() === account.toLowerCase()) {
+    console.log("MetaMask is connected with matching address");
+  } else {
+    console.log("MetaMask address mismatch or not connected");
   }
   
   try {
     const message = `Hello from Web3 Wallet! Signing with account: ${account}`;
-    toast.info("Please check your wallet for the signature request");
-    const signature = await userSign(message);
+    
+    console.log("Attempting to sign message for account:", account);
+    
+    // If userSign is not available or fails, try direct signing with MetaMask
+    let signature;
+    try {
+      signature = await userSign(message);
+    } catch (error) {
+      console.error("Error with userSign:", error);
+      
+      // Fallback to direct MetaMask signing
+      if (window.ethereum && typeof ethers !== 'undefined' && ethers.providers) {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          signature = await signer.signMessage(message);
+          console.log("Signature successful with direct MetaMask:", signature.substring(0, 20) + "...");
+        } catch (directError) {
+          console.error("Direct MetaMask signing also failed:", directError);
+          throw directError;
+        }
+      } else {
+        throw error;
+      }
+    }
+    
     setSignatureResult({
       success: true,
       message,
       signature
     });
+    
+    toast.success("Message signed successfully!");
   } catch (error) {
     console.error('Error signing message:', error);
     setSignatureResult({
       success: false,
       error: error.message
     });
+    console.log("Failed to sign message: " + error.message);
+    toast.error("Failed to sign message " );
   }
 };
+
 
   if (!isActive || !account) {
     return <div className="wallet-info-container p-4">Wallet not connected</div>;
