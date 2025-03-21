@@ -74,7 +74,7 @@ const handleSignMessage = async () => {
   }
   
   try {
-    const message = `Hello from Web3 Wallet! Signing with account: ${account}`;
+    const message = `Signing with account: ${account}`;
     
     console.log("Attempting to sign message for account:", account);
     
