@@ -131,8 +131,8 @@ function ConnectButton() {
       setIsMetaMaskConnected(true);
       toast.success("Connected to MetaMask successfully");
     } catch (error) {
-      console.error("MetaMask connection error:", error);
-      toast.error("Failed to connect to MetaMask: " + (error.message || "Unknown error"));
+      console.error("MetaMask connection error:", error.message);
+      toast.error("Failed to connect to MetaMask ");
     } finally {
       setIsLoading(prev => ({...prev, metamask: false}));
     }
@@ -161,8 +161,8 @@ function ConnectButton() {
       setIsWalletConnectConnected(true);
       toast.success("Connected to WalletConnect successfully");
     } catch (error) {
-      console.error("WalletConnect error:", error);
-      toast.error("Failed to connect with WalletConnect: " + (error.message || "Unknown error"));
+      console.error("WalletConnect error:", error.message);
+      toast.error("Failed to connect with WalletConnect ");
     } finally {
       setIsLoading(prev => ({...prev, walletconnect: false}));
     }

@@ -1,6 +1,6 @@
 import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState, useCallback } from "react";
-import { ethers } from "ethers";
+import { ethers } from "ethers"; ethers
 
 const useLibrary = () => {
   const { account, library, active, connector } = useWeb3React();
@@ -22,15 +22,10 @@ const useLibrary = () => {
           // Force request accounts to ensure connection
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           if (accounts && accounts.length > 0) {
-            // Make sure ethers is properly imported
-            if (typeof ethers !== 'undefined' && ethers.providers) {
-              const provider = new ethers.providers.Web3Provider(window.ethereum);
-              setSelectedLibrary(provider);
-              console.log("MetaMask library initialized successfully");
-            } else {
-              console.error("ethers library is not properly imported");
-              setSelectedLibrary(null);
-            }
+            // Use ethers v6 syntax
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            setSelectedLibrary(provider);
+            console.log("MetaMask library initialized successfully");
           } else {
             console.error("No accounts available in MetaMask");
             setSelectedLibrary(null);
@@ -64,7 +59,7 @@ const useLibrary = () => {
     refreshLibrary();
   }, [refreshLibrary]);
 
-  // Also check for window.ethereum changes
+  //check for window.ethereum changes
   useEffect(() => {
     if (window.ethereum) {
       const handleAccountsChanged = () => {

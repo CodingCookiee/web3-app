@@ -37,21 +37,16 @@ export const useSignature = () => {
           try {
             await window.ethereum.request({ method: 'eth_requestAccounts' });
             
-            // Make sure ethers is properly imported
-            if (typeof ethers !== 'undefined' && ethers.providers) {
-              const provider = new ethers.providers.Web3Provider(window.ethereum);
-              const signer = provider.getSigner();
-              
-              console.log("Using direct MetaMask connection for signing");
-              toast.info('Please sign the message in your wallet');
-              
-              const signature = await signer.signMessage(message);
-              console.log("Signature successful:", signature.substring(0, 20) + "...");
-              return signature;
-            } else {
-              console.error("ethers library is not properly imported");
-              throw new Error('ethers library not available');
-            }
+            
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            
+            console.log("Using direct MetaMask connection for signing");
+            
+            
+            const signature = await signer.signMessage(message);
+            console.log("Signature successful:", signature.substring(0, 20) + "...");
+            return signature;
           } catch (err) {
             console.error("Direct MetaMask signing failed:", err);
             toast.error('Failed to sign with MetaMask');
@@ -65,7 +60,8 @@ export const useSignature = () => {
 
       try {
         console.log("Getting signer from library...");
-        const signer = selectedLibrary.getSigner();
+        
+        const signer = await selectedLibrary.getSigner();
         console.log("Signer obtained, requesting signature...");
         toast.info('Please sign the message in your wallet');
         

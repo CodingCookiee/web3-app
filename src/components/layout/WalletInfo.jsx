@@ -5,7 +5,7 @@ import { useRefresh } from '../../hooks/useRefresh';
 import { useSignature } from '../../hooks/useSignature';
 import { Button } from '../ui/button';
 import Text from '../ui/text';
-import { toast  } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { ethers } from 'ethers'; 
 
 function WalletInfo() {
@@ -86,11 +86,12 @@ const handleSignMessage = async () => {
       console.error("Error with userSign:", error);
       
       // Fallback to direct MetaMask signing
-      if (window.ethereum && typeof ethers !== 'undefined' && ethers.providers) {
+      if (window.ethereum) {
         try {
           await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const signer = provider.getSigner();
+        
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
           signature = await signer.signMessage(message);
           console.log("Signature successful with direct MetaMask:", signature.substring(0, 20) + "...");
         } catch (directError) {
@@ -115,8 +116,8 @@ const handleSignMessage = async () => {
       success: false,
       error: error.message
     });
-    console.log("Failed to sign message: " + error.message);
-    toast.error("Failed to sign message " );
+    console.log("Failed to sign message:", error.message);
+    toast.error("Failed to sign message ");
   }
 };
 
