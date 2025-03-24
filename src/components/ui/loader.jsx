@@ -13,7 +13,7 @@ export const Loading = ({ height = "h-screen", width = "w-16" }) => {
           className={`${width} aspect-square border-[3px] border-t-4 border-dark-primary rounded-full`}
           style={{
             borderColor: "#1C1C21",
-            borderTopColor: "#edff66",
+            borderTopColor: "#4B0082",
           }}
           animate={{
             rotate: 360,

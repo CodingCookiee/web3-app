@@ -1,189 +1,102 @@
-import { ethers } from 'ethers';
+import { ethers } from "ethers";
 
-// ABI for the ERC-20 token contract at 0x6fEA2f1b82aFC40030520a6C49B0d3b652A65915
-const contractABI = [
+// ERC20 Token ABI with burn and mint functions
+const ERC20_ABI = [
   // Read functions
-  {
-    "inputs": [],
-    "name": "_decimals",
-    "outputs": [{"type": "uint8", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "_name",
-    "outputs": [{"type": "string", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "_symbol",
-    "outputs": [{"type": "string", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "address", "name": "account"}],
-    "name": "balanceOf",
-    "outputs": [{"type": "uint256", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getOwner",
-    "outputs": [{"type": "address", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function balanceOf(address) view returns (uint256)",
+  "function owner() view returns (address)",
+  
   // Write functions
-  {
-    "inputs": [
-      {"type": "address", "name": "spender"},
-      {"type": "uint256", "name": "amount"}
-    ],
-    "name": "approve",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "uint256", "name": "amount"}],
-    "name": "burn",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "uint256", "name": "amount"}],
-    "name": "mint",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"type": "address", "name": "recipient"},
-      {"type": "uint256", "name": "amount"}
-    ],
-    "name": "transfer",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"type": "address", "name": "sender"},
-      {"type": "address", "name": "recipient"},
-      {"type": "uint256", "name": "amount"}
-    ],
-    "name": "transferFrom",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "address", "name": "newOwner"}],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+  "function mint(uint256 amount) returns (bool)",
+  "function burn(uint256 amount) returns (bool)",
+  
+  // Events
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
 ];
 
-// Contract address
-const contractAddress = "0x6fEA2f1b82aFC40030520a6C49B0d3b652A65915";
+// Get contract address from environment variables
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 
 // Initialize contract with provider or signer
 const initContract = (providerOrSigner) => {
-  if (!providerOrSigner) {
-    throw new Error('Provider or signer is required');
-  }
-  
-  return new ethers.Contract(
-    contractAddress,
-    contractABI,
-    providerOrSigner
-  );
+  return new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, providerOrSigner);
 };
 
 // Read functions
 const getTokenName = async (provider) => {
   const contract = initContract(provider);
-  return await contract._name();
+  try {
+    return await contract.name();
+  } catch (error) {
+    console.error("Error reading token name:", error);
+    throw error;
+  }
 };
 
 const getTokenSymbol = async (provider) => {
   const contract = initContract(provider);
-  return await contract._symbol();
+  try {
+    return await contract.symbol();
+  } catch (error) {
+    console.error("Error reading token symbol:", error);
+    throw error;
+  }
 };
 
 const getTokenDecimals = async (provider) => {
   const contract = initContract(provider);
-  return await contract._decimals();
+  try {
+    return await contract.decimals();
+  } catch (error) {
+    console.error("Error reading token decimals:", error);
+    throw error;
+  }
 };
 
 const getBalance = async (provider, address) => {
   const contract = initContract(provider);
-  const balance = await contract.balanceOf(address);
-  return balance;
+  try {
+    return await contract.balanceOf(address);
+  } catch (error) {
+    console.error("Error reading balance:", error);
+    throw error;
+  }
 };
 
 const getOwner = async (provider) => {
   const contract = initContract(provider);
-  return await contract.getOwner();
+  try {
+    return await contract.owner();
+  } catch (error) {
+    console.error("Error reading token owner:", error);
+    throw error;
+  }
 };
 
 // Write functions
-const approve = async (signer, spenderAddress, amount) => {
-  const contract = initContract(signer);
-  const tx = await contract.approve(spenderAddress, amount);
-  return await tx.wait();
-};
-
-const transfer = async (signer, recipientAddress, amount) => {
-  const contract = initContract(signer);
-  const tx = await contract.transfer(recipientAddress, amount);
-  return await tx.wait();
-};
-
-const transferFrom = async (signer, senderAddress, recipientAddress, amount) => {
-  const contract = initContract(signer);
-  const tx = await contract.transferFrom(senderAddress, recipientAddress, amount);
-  return await tx.wait();
-};
-
 const mint = async (signer, amount) => {
   const contract = initContract(signer);
-  const tx = await contract.mint(amount);
-  return await tx.wait();
+  try {
+    const tx = await contract.mint(amount);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error minting tokens:", error);
+    throw error;
+  }
 };
 
 const burn = async (signer, amount) => {
   const contract = initContract(signer);
-  const tx = await contract.burn(amount);
-  return await tx.wait();
-};
-
-const transferOwnership = async (signer, newOwnerAddress) => {
-  const contract = initContract(signer);
-  const tx = await contract.transferOwnership(newOwnerAddress);
-  return await tx.wait();
-};
-
-const renounceOwnership = async (signer) => {
-  const contract = initContract(signer);
-  const tx = await contract.renounceOwnership();
-  return await tx.wait();
+  try {
+    const tx = await contract.burn(amount);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error burning tokens:", error);
+    throw error;
+  }
 };
 
 export {
@@ -192,11 +105,7 @@ export {
   getTokenDecimals,
   getBalance,
   getOwner,
-  approve,
-  transfer,
-  transferFrom,
   mint,
   burn,
-  transferOwnership,
-  renounceOwnership
+  CONTRACT_ADDRESS,
 };
