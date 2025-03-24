@@ -68,7 +68,7 @@ const handleSignMessage = async () => {
   // Check if MetaMask is connected but not properly initialized
   if (window.ethereum && window.ethereum.selectedAddress && 
       window.ethereum.selectedAddress.toLowerCase() === account.toLowerCase()) {
-    console.log("MetaMask is connected with matching address");
+    // console.log("MetaMask is connected with matching address");
   } else {
     console.log("MetaMask address mismatch or not connected");
   }
@@ -76,7 +76,7 @@ const handleSignMessage = async () => {
   try {
     const message = `Signing with account: ${account}`;
     
-    console.log("Attempting to sign message for account:", account);
+    // console.log("Attempting to sign message for account:", account);
     
     // If userSign is not available or fails, try direct signing with MetaMask
     let signature;

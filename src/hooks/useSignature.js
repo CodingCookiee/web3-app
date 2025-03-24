@@ -13,11 +13,11 @@ export const useSignature = () => {
    */
   const userSign = useCallback(
     async (message) => {
-      console.log("Signing attempt - Active:", active, "Account:", account, "Library:", !!selectedLibrary);
+      // console.log("Signing attempt - Active:", active, "Account:", account, "Library:", !!selectedLibrary);
       
       // If active is undefined but we have an account, try to refresh the library
       if (account && selectedLibrary === null) {
-        console.log("Account exists but library is null, attempting to refresh library");
+        // console.log("Account exists but library is null, attempting to refresh library");
         await refreshLibrary();
       }
       
@@ -41,11 +41,11 @@ export const useSignature = () => {
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             
-            console.log("Using direct MetaMask connection for signing");
+            // console.log("Using direct MetaMask connection for signing");
             
             
             const signature = await signer.signMessage(message);
-            console.log("Signature successful:", signature.substring(0, 20) + "...");
+            // console.log("Signature successful:", signature.substring(0, 20) + "...");
             return signature;
           } catch (err) {
             console.error("Direct MetaMask signing failed:", err);
@@ -59,14 +59,14 @@ export const useSignature = () => {
       }
 
       try {
-        console.log("Getting signer from library...");
+        // console.log("Getting signer from library...");
         
         const signer = await selectedLibrary.getSigner();
-        console.log("Signer obtained, requesting signature...");
+        // console.log("Signer obtained, requesting signature...");
         toast.info('Please sign the message in your wallet');
         
         const signature = await signer.signMessage(message);
-        console.log("Signature successful:", signature.substring(0, 20) + "...");
+        // console.log("Signature successful:", signature.substring(0, 20) + "...");
         return signature;
       } catch (error) {
         console.error('Signing error:', error);

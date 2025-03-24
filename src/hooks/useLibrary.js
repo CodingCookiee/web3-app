@@ -25,7 +25,7 @@ const useLibrary = () => {
             // Use ethers v6 syntax
             const provider = new ethers.BrowserProvider(window.ethereum);
             setSelectedLibrary(provider);
-            console.log("MetaMask library initialized successfully");
+            // console.log("MetaMask library initialized successfully");
           } else {
             console.error("No accounts available in MetaMask");
             setSelectedLibrary(null);
@@ -38,7 +38,7 @@ const useLibrary = () => {
       // For WalletConnect
       else if (connectorId === "walletconnect" && library) {
         setSelectedLibrary(library);
-        console.log("WalletConnect library initialized successfully");
+        // console.log("WalletConnect library initialized successfully");
       } 
       // Fallback to whatever library is provided by web3-react
       else if (library) {
