@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useWeb3React } from "@web3-react/core";
 import { ethers } from "ethers";
@@ -5,6 +6,8 @@ import Text from "../ui/text";
 import { Button } from "../ui/button";
 import { Loading } from "../ui/loader";
 import {
+  getTotalSupply,
+  getOwnerOf,
   getTokenName,
   getTokenSymbol,
   getTokenDecimals,
@@ -26,6 +29,8 @@ const ContractInteraction = () => {
   const [balance, setBalance] = useState("0");
   const [owner, setOwner] = useState("");
   const [isOwner, setIsOwner] = useState(false);
+  const [isTotalSupply, setTotalSupply] = useState();
+  const [isOwnerOf, setIsOwnerOf] = useState(false);
 
   // State for user inputs
   const [mintAmount, setMintAmount] = useState("");
@@ -55,27 +60,41 @@ const ContractInteraction = () => {
         const decimals = await getTokenDecimals(provider);
         if (decimals !== undefined) setTokenDecimals(decimals);
 
+        // Get total supply
+        const totalSupply = await getTotalSupply(provider);
+        console.log("Total Supply:", totalSupply);
+        setTotalSupply(totalSupply);
+        // if (totalSupply) setTotalSupply(ethers.utils.formatUnits(totalSupply, decimals));
+
         // Get balance
         try {
           const accountBalance = await getBalance(provider, account);
+          console.log("Account Balance:", accountBalance);
           if (accountBalance) {
             setBalance(ethers.utils.formatUnits(accountBalance, decimals));
           }
         } catch (err) {
-          console.error("Error getting balance:", err);
+          console.error("Error getting balance:", err.message);
           setBalance("0");
         }
 
         // Get owner
         try {
           const contractOwner = await getOwner(provider);
-          if (contractOwner && contractOwner !== ethers.constants.AddressZero) {
-            setOwner(contractOwner);
-            setIsOwner(contractOwner.toLowerCase() === account.toLowerCase());
-          }
+          console.log("Contract Owner:", contractOwner);
+          // if (contractOwner && contractOwner !== ethers.constants.AddressZero) {
+          // }
+          setOwner(contractOwner);
+          // setIsOwner(contractOwner.toLowerCase() === account.toLowerCase());
         } catch (err) {
-          console.error("Error getting owner:", err);
+          console.error("Error getting owner:", err.message);
         }
+
+        // getOwnerof 
+        const ownerOf = await getOwnerOf(provider, account);
+        console.log("Owner of:", ownerOf);
+        if(ownerOf) setIsOwnerOf(true);
+
 
         setIsLoading(false);
       } catch (err) {
@@ -202,15 +221,20 @@ const ContractInteraction = () => {
             <Text variant="h4" color="secondary">
               Symbol: {tokenSymbol}
             </Text>
-          
+            <Text variant="h4" color="secondary">
+              Decimals: {tokenDecimals}
+            </Text>
             <Text variant="h4" color="secondary">
               Your Balance: {balance} {tokenSymbol}
             </Text>
             <Text variant="h4" color="secondary">
-              Contract Owner: {owner || "Unknown"}
+              Contract Owner: {owner }
+            </Text>
+            <Text variant='h4' color="secondary">
+              Owner Address: {isOwnerOf? account : "N/A"}
             </Text>
             <Text variant="h4" color="secondary">
-              Your Address: {account}
+              Total Supply: {isTotalSupply} {tokenSymbol}
             </Text>
             <Text variant="h4" color="secondary">
               Contract Address: {CONTRACT_ADDRESS}

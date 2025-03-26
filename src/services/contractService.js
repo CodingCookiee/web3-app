@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+// i,pon file
 
 // ERC20 Token ABI with burn and mint functions
 const ERC20_ABI = [
@@ -6,8 +7,11 @@ const ERC20_ABI = [
   "function name() view returns (string)",
   "function symbol() view returns (string)",
   "function decimals() view returns (uint8)",
+  "function owner(address) view returns (address)",
+  "function getOwner(address) view return (address)",
   "function balanceOf(address) view returns (uint256)",
-  "function owner() view returns (address)",
+  "function totalSupply() view returns (uint256)",
+
   
   // Write functions
   "function mint(uint256 amount) returns (bool)",
@@ -66,16 +70,37 @@ const getBalance = async (provider, address) => {
   }
 };
 
-const getOwner = async (provider) => {
+const getOwner = async (provider, address) => {
   const contract = initContract(provider);
   try {
-    return await contract.owner();
+    return await contract.owner(address);
   } catch (error) {
     console.error("Error reading token owner:", error);
     throw error;
   }
 };
 
+
+const getTotalSupply = async (provider) => {
+  const contract = initContract(provider);
+  try {
+    return await contract.totalSupply();
+  } catch (error) {
+    console.error("Error reading total supply:", error);
+    throw error;
+  }
+};
+
+const getOwnerOf = async (provider, address) => {
+  const contract = initContract(provider)
+  try{
+    return await contract.getOwner(address);
+  }catch(error){
+    console.error("Error reading owner of:", error);
+    throw error;
+  }
+
+}
 // Write functions
 const mint = async (signer, amount) => {
   const contract = initContract(signer);
@@ -105,6 +130,8 @@ export {
   getTokenDecimals,
   getBalance,
   getOwner,
+  getTotalSupply,
+  getOwnerOf,
   mint,
   burn,
   CONTRACT_ADDRESS,
