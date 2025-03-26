@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useWeb3React } from "@web3-react/core";
-import { ethers } from "ethers";
+import * as ethers from "ethers";
 import Text from "../ui/text";
 import { Button } from "../ui/button";
 import { Loading } from "../ui/loader";
@@ -15,6 +15,8 @@ import {
   getOwner,
   mint,
   burn,
+  approve,
+  transfer,
   CONTRACT_ADDRESS,
 } from "../../services/contractService";
 import { registerToken } from "../../lib/wallet";
@@ -35,6 +37,10 @@ const ContractInteraction = () => {
   // State for user inputs
   const [mintAmount, setMintAmount] = useState("");
   const [burnAmount, setBurnAmount] = useState("");
+  const [approveAmount, setApproveAmount] = useState("");
+  const [isSpender, setIsSpender] = useState("");
+  const [transferAmount, setTransferAmount] = useState("");
+  const [isRecipient, setIsRecipient] = useState("");
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
@@ -62,17 +68,28 @@ const ContractInteraction = () => {
 
         // Get total supply
         const totalSupply = await getTotalSupply(provider);
-        console.log("Total Supply:", totalSupply);
-        setTotalSupply(totalSupply);
-        // if (totalSupply) setTotalSupply(ethers.utils.formatUnits(totalSupply, decimals));
+        // console.log("Total Supply:", totalSupply);
+        // setTotalSupply(totalSupply);
+        if (totalSupply) {
+          const formattedTotalSupply = ethers.formatUnits(
+            totalSupply,
+            decimals
+          );
+          const trimmedTotalSupply =
+            formattedTotalSupply.slice(0, 12) +
+            "..." +
+            formattedTotalSupply.slice(-3);
+          setTotalSupply(trimmedTotalSupply);
+        }
 
         // Get balance
         try {
           const accountBalance = await getBalance(provider, account);
-          console.log("Account Balance:", accountBalance);
+          // console.log("Account Balance:", accountBalance);
           if (accountBalance) {
-            setBalance(ethers.utils.formatUnits(accountBalance, decimals));
+            setBalance(ethers.formatUnits(accountBalance, decimals));
           }
+          setBalance(accountBalance);
         } catch (err) {
           console.error("Error getting balance:", err.message);
           setBalance("0");
@@ -81,20 +98,18 @@ const ContractInteraction = () => {
         // Get owner
         try {
           const contractOwner = await getOwner(provider);
-          console.log("Contract Owner:", contractOwner);
+          // console.log("Contract Owner:", contractOwner);
           // if (contractOwner && contractOwner !== ethers.constants.AddressZero) {
           // }
-          setOwner(contractOwner);
+          if (contractOwner) {
+            const formattedOwner =
+              contractOwner.slice(0, 10) + "..." + contractOwner.slice(-3);
+            setOwner(formattedOwner);
+          }
           // setIsOwner(contractOwner.toLowerCase() === account.toLowerCase());
         } catch (err) {
           console.error("Error getting owner:", err.message);
         }
-
-        // getOwnerof 
-        const ownerOf = await getOwnerOf(provider, account);
-        console.log("Owner of:", ownerOf);
-        if(ownerOf) setIsOwnerOf(true);
-
 
         setIsLoading(false);
       } catch (err) {
@@ -103,7 +118,6 @@ const ContractInteraction = () => {
         setIsLoading(false);
       }
     };
-
     loadTokenInfo();
   }, [provider, account]);
 
@@ -117,13 +131,14 @@ const ContractInteraction = () => {
       setSuccessMessage("");
 
       const signer = provider.getSigner();
-      const amount = ethers.utils.parseUnits(mintAmount, tokenDecimals);
 
-      await mint(signer, amount);
+      const amount = ethers.parseEther(mintAmount, tokenDecimals);
+
+      await mint(signer, mintAmount);
 
       // Update balance after minting
       const newBalance = await getBalance(provider, account);
-      setBalance(ethers.utils.formatUnits(newBalance, tokenDecimals));
+      setBalance(ethers.formatUnits(newBalance, tokenDecimals));
 
       setSuccessMessage(`Successfully minted ${mintAmount} ${tokenSymbol}`);
       setMintAmount("");
@@ -145,13 +160,15 @@ const ContractInteraction = () => {
       setSuccessMessage("");
 
       const signer = provider.getSigner();
-      const amount = ethers.utils.parseUnits(burnAmount, tokenDecimals);
+
+      // Convert burnAmount to the appropriate token unit
+      const amount = ethers.parseEther(burnAmount, tokenDecimals);
 
       await burn(signer, amount);
 
       // Update balance after burning
       const newBalance = await getBalance(provider, account);
-      setBalance(ethers.utils.formatUnits(newBalance, tokenDecimals));
+      setBalance(ethers.formatUnits(newBalance, tokenDecimals));
 
       setSuccessMessage(`Successfully burned ${burnAmount} ${tokenSymbol}`);
       setBurnAmount("");
@@ -163,9 +180,55 @@ const ContractInteraction = () => {
     }
   };
 
+  const handleApprove = async () => {
+    if (!provider || !account || !isSpender || !approveAmount) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSuccessMessage("");
+
+      const signer = provider.getSigner();
+      const amount = ethers.parseEther(approveAmount, tokenDecimals);
+      await approve(signer, isSpender, amount);
+      setSuccessMessage(
+        `Successfully approved ${approveAmount} ${tokenSymbol} to ${isSpender}`
+      );
+      setApproveAmount("");
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error approving token:", err);
+      setError(`Approval failed: ${err.message}`);
+      setIsLoading(false);
+    }
+  };
+
+  // handle transfer
+  const handleTransfer = async () => {
+    if (!provider || !account || !transferAmount || !isRecipient) return;
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSuccessMessage("");
+      const signer = provider.getSigner();
+      const amount = ethers.parseEther(transferAmount, tokenDecimals);
+      await transfer(signer, isRecipient, amount);
+      setSuccessMessage(
+        `Successfully transferred ${transferAmount} ${tokenSymbol} to ${isRecipient}`
+      );
+      setTransferAmount("");
+      setIsLoading(false);
+      setIsRecipient("");
+    } catch (err) {
+      console.error("Error transferring token:", err);
+      setError(`Transfer failed: ${err.message}`);
+      setIsLoading(false);
+    }
+  };
+
   // Handle adding token to MetaMask
   const handleAddTokenToWallet = async () => {
-    if (!window.ethereum) {
+    if (!window.ethereum || !account) {
       setError("MetaMask not detected");
       return;
     }
@@ -189,8 +252,8 @@ const ContractInteraction = () => {
 
   if (!account) {
     return (
-      <div className="w-full h-full flex flex-col items-center gap-12">
-        <Text variant="h3" color="secondary">
+      <div className="w-full h-full flex flex-col items-center justify-center gap-12">
+        <Text variant="h3" color="secondary" align="center">
           Please connect your wallet first for contract interaction
         </Text>
       </div>
@@ -202,7 +265,7 @@ const ContractInteraction = () => {
       className="w-full h-full flex flex-col items-center gap-12
     bg-gray-200 border border-neutral-400 shadow-md rounded-lg px-10 py-10"
     >
-      <Text variant="h1">{tokenSymbol} Token Interaction</Text>
+      <Text variant="h1">{tokenSymbol.toUpperCase()} Token Interaction</Text>
 
       {/* Token Info Section */}
       <div className="w-full flex flex-col items-start gap-2.5">
@@ -227,17 +290,19 @@ const ContractInteraction = () => {
             <Text variant="h4" color="secondary">
               Your Balance: {balance} {tokenSymbol}
             </Text>
-            <Text variant="h4" color="secondary">
-              Contract Owner: {owner }
-            </Text>
-            <Text variant='h4' color="secondary">
-              Owner Address: {isOwnerOf? account : "N/A"}
-            </Text>
+
             <Text variant="h4" color="secondary">
               Total Supply: {isTotalSupply} {tokenSymbol}
             </Text>
+
             <Text variant="h4" color="secondary">
-              Contract Address: {CONTRACT_ADDRESS}
+              Contract Owner: {owner}
+            </Text>
+            <Text variant="h4" color="secondary">
+              Contract Address:{" "}
+              {CONTRACT_ADDRESS.slice(0, 10) +
+                "..." +
+                CONTRACT_ADDRESS.slice(-3)}
             </Text>
             <Button
               className="mt-2"
@@ -256,7 +321,7 @@ const ContractInteraction = () => {
           Mint Tokens
         </Text>
         <input
-          type="text"
+          type="number"
           className="w-full p-2 rounded-sm"
           required
           value={mintAmount}
@@ -275,7 +340,7 @@ const ContractInteraction = () => {
           Burn Tokens
         </Text>
         <input
-          type="text"
+          type="number"
           className="w-full p-2 rounded-sm"
           required
           value={burnAmount}
@@ -285,6 +350,68 @@ const ContractInteraction = () => {
         />
         <Button onClick={handleBurn} disabled={isLoading || !burnAmount}>
           Burn
+        </Button>
+      </div>
+
+      {/* Approve Section */}
+      <div className="w-full flex flex-col items-start gap-2.5">
+        <Text variant="h3" color="secondary" weight="bold" className="mb-2">
+          Approve
+        </Text>
+        <input
+          type="text"
+          className="w-full p-2 rounded-sm"
+          required
+          value={isSpender}
+          onChange={(e) => setIsSpender(e.target.value)}
+          placeholder="Spender"
+          disabled={isLoading}
+        />
+        <input
+          type="number"
+          className="w-full p-2 rounded-sm"
+          required
+          value={approveAmount}
+          onChange={(e) => setApproveAmount(e.target.value)}
+          placeholder="Amount"
+          disabled={isLoading}
+        />
+        <Button
+          onClick={handleApprove}
+          disabled={isLoading || !isSpender || !approveAmount}
+        >
+          Approve
+        </Button>
+      </div>
+
+      {/* Transfer Section */}
+      <div className="w-full flex flex-col items-start gap-2.5">
+        <Text variant="h3" color="secondary" weight="bold" className="mb-2">
+          Transfer
+        </Text>
+        <input
+          type="text"
+          className="w-full p-2 rounded-sm"
+          required
+          value={isRecipient}
+          onChange={(e) => setIsRecipient(e.target.value)}
+          placeholder="Recipient"
+          disabled={isLoading}
+        />
+        <input
+          type="number"
+          className="w-full p-2 rounded-sm"
+          required
+          value={transferAmount}
+          onChange={(e) => setTransferAmount(e.target.value)}
+          placeholder="Amount"
+          disabled={isLoading}
+        />
+        <Button
+          onClick={handleTransfer}
+          disabled={isLoading || !isRecipient || !transferAmount}
+        >
+          Transfer
         </Button>
       </div>
 

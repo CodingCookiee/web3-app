@@ -7,16 +7,17 @@ const ERC20_ABI = [
   "function name() view returns (string)",
   "function symbol() view returns (string)",
   "function decimals() view returns (uint8)",
-  "function owner(address) view returns (address)",
-  "function getOwner(address) view return (address)",
+  "function owner() view returns (address)",
+  // "function getOwner() view return (address)",
   "function balanceOf(address) view returns (uint256)",
   "function totalSupply() view returns (uint256)",
 
-  
   // Write functions
   "function mint(uint256 amount) returns (bool)",
   "function burn(uint256 amount) returns (bool)",
-  
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function transfer(address recipient, uint256 amount) returns (bool)",
+
   // Events
   "event Transfer(address indexed from, address indexed to, uint256 value)",
 ];
@@ -70,16 +71,15 @@ const getBalance = async (provider, address) => {
   }
 };
 
-const getOwner = async (provider, address) => {
+const getOwner = async (provider) => {
   const contract = initContract(provider);
   try {
-    return await contract.owner(address);
+    return await contract.owner();
   } catch (error) {
     console.error("Error reading token owner:", error);
     throw error;
   }
 };
-
 
 const getTotalSupply = async (provider) => {
   const contract = initContract(provider);
@@ -91,16 +91,15 @@ const getTotalSupply = async (provider) => {
   }
 };
 
-const getOwnerOf = async (provider, address) => {
-  const contract = initContract(provider)
-  try{
-    return await contract.getOwner(address);
-  }catch(error){
+const getOwnerOf = async (provider) => {
+  const contract = initContract(provider);
+  try {
+    return await contract.getOwner();
+  } catch (error) {
     console.error("Error reading owner of:", error);
     throw error;
   }
-
-}
+};
 // Write functions
 const mint = async (signer, amount) => {
   const contract = initContract(signer);
@@ -124,6 +123,28 @@ const burn = async (signer, amount) => {
   }
 };
 
+const approve = async (signer, spender, amount) => {
+  const contract = initContract(signer);
+  try {
+    const tx = await contract.approve(spender, amount);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error approving tokens:", error);
+    throw error;
+  }
+};
+
+const transfer = async (signer, recipient, amount) => {
+  const contract = initContract(signer);
+  try {
+    const tx = await contract.transfer(recipient, amount);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error transferring tokens:", error);
+    throw error;
+  }
+};
+
 export {
   getTokenName,
   getTokenSymbol,
@@ -134,5 +155,7 @@ export {
   getOwnerOf,
   mint,
   burn,
+  approve,
+  transfer,
   CONTRACT_ADDRESS,
 };
