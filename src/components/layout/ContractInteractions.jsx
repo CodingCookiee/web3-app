@@ -21,7 +21,7 @@ import {
   increaseAllowance,
   transferOwnership,
   CONTRACT_ADDRESS,
-} from "../../services/contractService";
+} from "../../services/contractServices2";
 import { registerToken } from "../../lib/wallet";
 
 const ContractInteraction = () => {
