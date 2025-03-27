@@ -17,6 +17,9 @@ import {
   burn,
   approve,
   transfer,
+  transferFrom,
+  increaseAllowance,
+  transferOwnership,
   CONTRACT_ADDRESS,
 } from "../../services/contractService";
 import { registerToken } from "../../lib/wallet";
@@ -41,6 +44,12 @@ const ContractInteraction = () => {
   const [isSpender, setIsSpender] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [isRecipient, setIsRecipient] = useState("");
+  const [isSender, setIsSender] = useState("");
+  const [isAmountRecipient, setIsAmountRecipient] = useState("");
+  const [isTransferAmount, setIsTransferAmount] = useState("");
+  const [isAllowanceSpender, setIsAllowanceSpender] = useState("");
+  const [isAddedValue, setIsAddedValue] = useState("");
+  const [isNewOwner, setIsNewOwner] = useState("");
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
@@ -210,8 +219,24 @@ const ContractInteraction = () => {
       setIsLoading(true);
       setError(null);
       setSuccessMessage("");
-      const signer = provider.getSigner();
+
+      // Checking if the sender has sufficient balance
+      const senderBalance = await getBalance(provider, account);
       const amount = ethers.parseEther(transferAmount, tokenDecimals);
+
+      if (senderBalance < amount) {
+        setError(
+          `Sender doesn't have enough tokens. Balance: ${ethers.formatUnits(
+            senderBalance,
+            tokenDecimals
+          )} ${tokenSymbol}`
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      const signer = provider.getSigner();
+
       await transfer(signer, isRecipient, amount);
       setSuccessMessage(
         `Successfully transferred ${transferAmount} ${tokenSymbol} to ${isRecipient}`
@@ -222,6 +247,95 @@ const ContractInteraction = () => {
     } catch (err) {
       console.error("Error transferring token:", err);
       setError(`Transfer failed: ${err.message}`);
+      setIsLoading(false);
+    }
+  };
+
+  // handle transfer
+  const handleTransferFrom = async () => {
+    if (
+      !provider ||
+      !account ||
+      !isSender ||
+      !isAmountRecipient ||
+      !isTransferAmount
+    )
+      return;
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSuccessMessage("");
+
+      // Checking if the sender has sufficient balance
+      const senderBalance = await getBalance(provider, isSender);
+      const amount = ethers.parseEther(isTransferAmount, tokenDecimals);
+
+      if (senderBalance < amount) {
+        setError(
+          `Sender doesn't have enough tokens. Balance: ${ethers.formatUnits(
+            senderBalance,
+            tokenDecimals
+          )} ${tokenSymbol}`
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      const signer = provider.getSigner();
+      await transferFrom(signer, isSender, isAmountRecipient, amount);
+      setSuccessMessage(
+        `Successfully transferred ${isTransferAmount} ${tokenSymbol} to ${isAmountRecipient}`
+      );
+      setIsAmountRecipient("");
+      setIsSender("");
+      setIsAmountRecipient("");
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error transferring token:", err);
+      setError(`Transfer failed: ${err.message}`);
+      setIsLoading(false);
+    }
+  };
+
+  // handle transfer
+  const handleIncreaseAllowance = async () => {
+    if (!provider || !account || !isAllowanceSpender || !isAddedValue) return;
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSuccessMessage("");
+      const signer = provider.getSigner();
+      const addedValue = ethers.parseEther(isAddedValue, tokenDecimals);
+      await increaseAllowance(signer, isAllowanceSpender, addedValue);
+      setSuccessMessage(
+        `Successfully increased allowance of ${addedValue} ${tokenSymbol} for ${isAllowanceSpender}`
+      );
+      setIsAddedValue("");
+      setIsAllowanceSpender("");
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error increasing allowance:", err);
+      setError(`Allowance Increasing Failed: ${err.message}`);
+      setIsLoading(false);
+    }
+  };
+
+  // handle transfer
+  const handleTranFerOwnership = async () => {
+    if (!provider || !account || !isNewOwner) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSuccessMessage("");
+      const signer = provider.getSigner();
+      await transferOwnership(signer, isNewOwner);
+      setSuccessMessage(`Successfully transferred ownership to ${isNewOwner}`);
+      setIsNewOwner("");
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error transferring ownership:", err);
+      setError(`Ownership Transfer Failed: ${err.message}`);
       setIsLoading(false);
     }
   };
@@ -412,6 +526,108 @@ const ContractInteraction = () => {
           disabled={isLoading || !isRecipient || !transferAmount}
         >
           Transfer
+        </Button>
+      </div>
+
+      {/* TransferFrom Section */}
+      <div className="w-full flex flex-col items-start gap-2.5">
+        <Text variant="h3" color="secondary" weight="bold" className="mb-2">
+          Transfer From
+        </Text>
+        <input
+          type="text"
+          className="w-full p-2 rounded-sm"
+          required
+          value={isSender}
+          onChange={(e) => setIsSender(e.target.value)}
+          placeholder="Sender"
+          disabled={isLoading}
+        />
+        <input
+          type="text"
+          className="w-full p-2 rounded-sm"
+          required
+          value={isAmountRecipient}
+          onChange={(e) => setIsAmountRecipient(e.target.value)}
+          placeholder="Recipient"
+          disabled={isLoading}
+        />
+        <input
+          type="number"
+          className="w-full p-2 rounded-sm"
+          required
+          value={isTransferAmount}
+          onChange={(e) => setIsTransferAmount(e.target.value)}
+          placeholder="Amount"
+          disabled={isLoading}
+        />
+        <Button
+          onClick={handleTransferFrom}
+          disabled={
+            !provider ||
+            !account ||
+            !isSender ||
+            !isAmountRecipient ||
+            !isTransferAmount
+          }
+        >
+          Transfer From
+        </Button>
+      </div>
+
+      {/* Increase Allowance Section */}
+      <div className="w-full flex flex-col items-start gap-2.5">
+        <Text variant="h3" color="secondary" weight="bold" className="mb-2">
+          Increase Allowance
+        </Text>
+        <input
+          type="text"
+          className="w-full p-2 rounded-sm"
+          required
+          value={isAllowanceSpender}
+          onChange={(e) => setIsAllowanceSpender(e.target.value)}
+          placeholder="Spender"
+          disabled={isLoading}
+        />
+
+        <input
+          type="number"
+          className="w-full p-2 rounded-sm"
+          required
+          value={isAddedValue}
+          onChange={(e) => setIsAddedValue(e.target.value)}
+          placeholder="Add Value"
+          disabled={isLoading}
+        />
+        <Button
+          onClick={handleIncreaseAllowance}
+          disabled={
+            !provider || !account || !isAddedValue || !isAllowanceSpender
+          }
+        >
+          Increase Allowance
+        </Button>
+      </div>
+
+      {/* Transfer OwnerShip Section  */}
+      <div className="w-full flex flex-col items-start gap-2.5">
+        <Text variant="h3" color="secondary" weight="bold" className="mb-2">
+          Transfer OwnerShip
+        </Text>
+        <input
+          type="text"
+          className="w-full p-2 rounded-sm"
+          required
+          value={isNewOwner}
+          onChange={(e) => setIsNewOwner(e.target.value)}
+          placeholder="New Owner's Address"
+          disabled={isLoading}
+        />
+        <Button
+          onClick={handleTranFerOwnership}
+          disabled={!provider || !account || !isNewOwner}
+        >
+          Transfer OwnerShip
         </Button>
       </div>
 

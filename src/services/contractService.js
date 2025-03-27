@@ -17,6 +17,9 @@ const ERC20_ABI = [
   "function burn(uint256 amount) returns (bool)",
   "function approve(address spender, uint256 amount) returns (bool)",
   "function transfer(address recipient, uint256 amount) returns (bool)",
+  "function transferFrom(address sender, address recipient, uint256 amount) returns (bool)",
+  "function increaseAllowance(address spender, uint256 addedValue) ",
+  "function transferOwnership(address newOwner) returns (bool)",
 
   // Events
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -145,6 +148,40 @@ const transfer = async (signer, recipient, amount) => {
   }
 };
 
+const transferFrom = async (signer, sender, recipient, amount) => {
+  const contract = initContract(signer);
+  try {
+    const tx = await contract.transferFrom(sender, recipient, amount);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error transferring tokens:", error);
+    throw error;
+  }
+};
+
+const increaseAllowance = async (signer, spender, addedValue) => {
+  const contract = initContract(signer);
+  try {
+    const tx = await contract.increaseAllowance(spender, addedValue);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error increasing allowance:", error);
+    throw error;
+  }
+};
+
+const transferOwnership = async (signer, newOwner) => {
+  const contract = initContract(signer);
+
+  try {
+    const tx = await contract.transferOwnership(newOwner);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error transferring ownership:", error);
+    throw error;
+  }
+};
+
 export {
   getTokenName,
   getTokenSymbol,
@@ -157,5 +194,8 @@ export {
   burn,
   approve,
   transfer,
+  transferFrom,
+  increaseAllowance,
+  transferOwnership,
   CONTRACT_ADDRESS,
 };
